@@ -5,9 +5,12 @@ description = "Streamlit dialer for testing the Nalia voice agent via LiveKit di
 requires-python = ">=3.10, <3.15"
 
 dependencies = [
+    "bcrypt>=4.0.0",
     "livekit-api>=1.0",
     "python-dotenv",
     "streamlit~=1.40",
+    "streamlit-authenticator>=0.4.2",
+    "watchdog>=6.0.0",
 ]
 
 [dependency-groups]
