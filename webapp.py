@@ -122,7 +122,6 @@ def place_call(phone_number: str) -> None:
 st.title("Nalia Tester")
 st.caption(
     "Escolha um contacto ou introduza um número novo. "
-    "Requer que o agente já esteja implementado e à escuta no LiveKit."
 )
 
 cols = st.columns(len(PRESETS))
