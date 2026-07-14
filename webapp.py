@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import re
+import uuid
 from pathlib import Path
 
 import streamlit as st
@@ -78,12 +79,27 @@ def stop_calls() -> None:
         st.error(f"Falha ao desligar chamadas ativas: {e}")
 
 
+async def hang_up_calls_for_number(phone_number: str) -> int:
+    """Delete any rooms already in progress for this number, so a new dispatch
+    can't join a stale room left over from a previous test call."""
+    prefix = f"call-{phone_number.lstrip('+')}-"
+    async with api.LiveKitAPI() as lk:
+        rooms = (await lk.room.list_rooms(api.ListRoomsRequest())).rooms
+        matching = [r for r in rooms if r.name.startswith(prefix)]
+        for r in matching:
+            await lk.room.delete_room(api.DeleteRoomRequest(room=r.name))
+    return len(matching)
+
+
 async def dispatch_call(phone_number: str) -> api.AgentDispatch:
+    # Suffix with a unique id so repeated calls to the same number never
+    # reuse a room a previous (possibly still-lingering) call was using.
+    room_name = f"call-{phone_number.lstrip('+')}-{uuid.uuid4().hex[:8]}"
     async with api.LiveKitAPI() as lk:
         return await lk.agent_dispatch.create_dispatch(
             api.CreateAgentDispatchRequest(
                 agent_name=AGENT_NAME,
-                room=f"call-{phone_number.lstrip('+')}",
+                room=room_name,
                 metadata=json.dumps({"phone_number": phone_number}),
             )
         )
@@ -96,6 +112,7 @@ def place_call(phone_number: str) -> None:
         return
     try:
         with st.spinner(f"A chamar {phone_number}..."):
+            asyncio.run(hang_up_calls_for_number(phone_number))
             dispatch = asyncio.run(dispatch_call(phone_number))
         st.success(f"Chamada iniciada. Sala: {dispatch.room}")
     except Exception as e:
