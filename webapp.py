@@ -60,6 +60,15 @@ PRESETS = [
     ("Dani", "+351932587940"),
 ]
 
+# "provider:model" strings understood by the agent's _build_llm helper.
+MODEL_OPTIONS = [
+    "google:gemini-3.5-flash",
+    "google:gemini-3.1-flash-lite",
+    "anthropic:claude-sonnet-4-6",
+    "anthropic:claude-sonnet-5",
+    "anthropic:claude-haiku-4-5-20251001",
+]
+
 
 async def hang_up_active_calls() -> int:
     """Delete any rooms this app dialed, disconnecting the calls immediately."""
@@ -91,7 +100,7 @@ async def hang_up_calls_for_number(phone_number: str) -> int:
     return len(matching)
 
 
-async def dispatch_call(phone_number: str) -> api.AgentDispatch:
+async def dispatch_call(phone_number: str, model: str) -> api.AgentDispatch:
     # Suffix with a unique id so repeated calls to the same number never
     # reuse a room a previous (possibly still-lingering) call was using.
     room_name = f"call-{phone_number.lstrip('+')}-{uuid.uuid4().hex[:8]}"
@@ -100,12 +109,12 @@ async def dispatch_call(phone_number: str) -> api.AgentDispatch:
             api.CreateAgentDispatchRequest(
                 agent_name=AGENT_NAME,
                 room=room_name,
-                metadata=json.dumps({"phone_number": phone_number}),
+                metadata=json.dumps({"phone_number": phone_number, "model": model}),
             )
         )
 
 
-def place_call(phone_number: str) -> None:
+def place_call(phone_number: str, model: str) -> None:
     phone_number = re.sub(r"\s+", "", phone_number)
     if not PHONE_RE.match(phone_number):
         st.error("Use o formato internacional E.164, por exemplo +351912345678.")
@@ -113,7 +122,7 @@ def place_call(phone_number: str) -> None:
     try:
         with st.spinner(f"A chamar {phone_number}..."):
             asyncio.run(hang_up_calls_for_number(phone_number))
-            dispatch = asyncio.run(dispatch_call(phone_number))
+            dispatch = asyncio.run(dispatch_call(phone_number, model))
         st.success(f"Chamada iniciada. Sala: {dispatch.room}")
     except Exception as e:
         st.error(f"Falha ao iniciar a chamada: {e}")
@@ -124,11 +133,13 @@ st.caption(
     "Escolha um contacto ou introduza um número novo. "
 )
 
+selected_model = st.selectbox("Modelo do LLM", MODEL_OPTIONS)
+
 cols = st.columns(len(PRESETS))
 for col, (name, number) in zip(cols, PRESETS):
     with col:
         if st.button(f"📞 {name}", use_container_width=True):
-            place_call(number)
+            place_call(number, selected_model)
 
 st.divider()
 
@@ -137,7 +148,7 @@ if st.button("Ligar", type="primary"):
     if not phone_number:
         st.error("Introduza um número de telefone.")
     else:
-        place_call(phone_number)
+        place_call(phone_number, selected_model)
 
 st.divider()
 if st.button("🛑 Terminar chamadas ativas"):
