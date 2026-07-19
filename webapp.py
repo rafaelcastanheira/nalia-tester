@@ -69,6 +69,13 @@ MODEL_OPTIONS = [
     "anthropic:claude-haiku-4-5-20251001",
 ]
 
+# Display name -> voice id sent in the dispatch metadata.
+VOICE_OPTIONS = {
+    "Catarina": "VAHD6DcMvIFlWQtUHHg6",
+    "Angolana": "JGnWZj684pcXmK2SxYIv",
+    "Patricio": "DMcOknq8n1B6XshFIJKJ",
+}
+
 
 async def hang_up_active_calls() -> int:
     """Delete any rooms this app dialed, disconnecting the calls immediately."""
@@ -100,7 +107,9 @@ async def hang_up_calls_for_number(phone_number: str) -> int:
     return len(matching)
 
 
-async def dispatch_call(phone_number: str, model: str) -> api.AgentDispatch:
+async def dispatch_call(
+    phone_number: str, model: str, voice: str, extra_instructions: str
+) -> api.AgentDispatch:
     # Suffix with a unique id so repeated calls to the same number never
     # reuse a room a previous (possibly still-lingering) call was using.
     room_name = f"call-{phone_number.lstrip('+')}-{uuid.uuid4().hex[:8]}"
@@ -109,12 +118,19 @@ async def dispatch_call(phone_number: str, model: str) -> api.AgentDispatch:
             api.CreateAgentDispatchRequest(
                 agent_name=AGENT_NAME,
                 room=room_name,
-                metadata=json.dumps({"phone_number": phone_number, "model": model}),
+                metadata=json.dumps(
+                    {
+                        "phone_number": phone_number,
+                        "model": model,
+                        "voice": voice,
+                        "extra_instructions": extra_instructions,
+                    }
+                ),
             )
         )
 
 
-def place_call(phone_number: str, model: str) -> None:
+def place_call(phone_number: str, model: str, voice: str, extra_instructions: str) -> None:
     phone_number = re.sub(r"\s+", "", phone_number)
     if not PHONE_RE.match(phone_number):
         st.error("Use o formato internacional E.164, por exemplo +351912345678.")
@@ -122,7 +138,9 @@ def place_call(phone_number: str, model: str) -> None:
     try:
         with st.spinner(f"A chamar {phone_number}..."):
             asyncio.run(hang_up_calls_for_number(phone_number))
-            dispatch = asyncio.run(dispatch_call(phone_number, model))
+            dispatch = asyncio.run(
+                dispatch_call(phone_number, model, voice, extra_instructions)
+            )
         st.success(f"Chamada iniciada. Sala: {dispatch.room}")
     except Exception as e:
         st.error(f"Falha ao iniciar a chamada: {e}")
@@ -134,12 +152,18 @@ st.caption(
 )
 
 selected_model = st.selectbox("Modelo do LLM", MODEL_OPTIONS)
+selected_voice_name = st.selectbox("Voz", list(VOICE_OPTIONS.keys()))
+selected_voice = VOICE_OPTIONS[selected_voice_name]
+extra_instructions = st.text_area(
+    "Instruções extra (adicionadas ao system prompt)",
+    placeholder="Instruções adicionais para o agente...",
+)
 
 cols = st.columns(len(PRESETS))
 for col, (name, number) in zip(cols, PRESETS):
     with col:
         if st.button(f"📞 {name}", use_container_width=True):
-            place_call(number, selected_model)
+            place_call(number, selected_model, selected_voice, extra_instructions)
 
 st.divider()
 
@@ -148,7 +172,7 @@ if st.button("Ligar", type="primary"):
     if not phone_number:
         st.error("Introduza um número de telefone.")
     else:
-        place_call(phone_number, selected_model)
+        place_call(phone_number, selected_model, selected_voice, extra_instructions)
 
 st.divider()
 if st.button("🛑 Terminar chamadas ativas"):
