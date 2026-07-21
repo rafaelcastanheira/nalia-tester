@@ -66,6 +66,7 @@ MODEL_OPTIONS = [
     "google:gemini-3.1-flash-lite",
     "anthropic:claude-sonnet-4-6",
     "anthropic:claude-sonnet-5",
+    "anthropic:claude-opus-4-8",
     "anthropic:claude-haiku-4-5-20251001",
 ]
 
