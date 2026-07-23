@@ -66,8 +66,10 @@ MODEL_OPTIONS = [
     "google:gemini-3.1-flash-lite",
     "anthropic:claude-sonnet-4-6",
     "anthropic:claude-sonnet-5",
-    "anthropic:claude-opus-4-8",
     "anthropic:claude-haiku-4-5-20251001",
+    "openai:gpt-4o-mini",
+    "openai:gpt-4.1-mini",
+    "openai:gpt-4o",
 ]
 
 # Display name -> voice id sent in the dispatch metadata.
