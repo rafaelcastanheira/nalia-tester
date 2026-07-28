@@ -62,8 +62,8 @@ PRESETS = [
 
 # "provider:model" strings understood by the agent's _build_llm helper.
 MODEL_OPTIONS = [
-    "google:gemini-3.5-flash",
     "google:gemini-3.1-flash-lite",
+    "google:gemini-3.5-flash",
     "anthropic:claude-sonnet-4-6",
     "anthropic:claude-sonnet-5",
     "anthropic:claude-haiku-4-5-20251001",
