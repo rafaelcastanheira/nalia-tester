@@ -55,9 +55,9 @@ AGENT_NAME = "zelai"
 PHONE_RE = re.compile(r"^\+[1-9]\d{6,14}$")  # E.164
 
 PRESETS = [
-    ("Rafa", "+351967872718"),
-    ("Luís", "+351964192119"),
-    ("Dani", "+351932587940"),
+    ("Rafa", "+351967872718", "47baf929-e9c4-4100-9be2-038d9e1924d0"),
+    ("Luís", "+351964192119", "9f849f74-443b-4bf7-b958-402ac6802b9a"),
+    ("Dani", "+351932587940", "99ffed4a-ba02-4e76-aa93-61ff23948c36"),
 ]
 
 # "provider:model" strings understood by the agent's _build_llm helper.
@@ -111,7 +111,7 @@ async def hang_up_calls_for_number(phone_number: str) -> int:
 
 
 async def dispatch_call(
-    phone_number: str, model: str, voice: str, extra_instructions: str
+    phone_number: str, model: str, voice: str, extra_instructions: str, elder_id: str
 ) -> api.AgentDispatch:
     # Suffix with a unique id so repeated calls to the same number never
     # reuse a room a previous (possibly still-lingering) call was using.
@@ -127,13 +127,16 @@ async def dispatch_call(
                         "model": model,
                         "voice": voice,
                         "extra_instructions": extra_instructions,
+                        "elder_id": elder_id,
                     }
                 ),
             )
         )
 
 
-def place_call(phone_number: str, model: str, voice: str, extra_instructions: str) -> None:
+def place_call(
+    phone_number: str, model: str, voice: str, extra_instructions: str, elder_id: str = ""
+) -> None:
     phone_number = re.sub(r"\s+", "", phone_number)
     if not PHONE_RE.match(phone_number):
         st.error("Use o formato internacional E.164, por exemplo +351912345678.")
@@ -142,7 +145,7 @@ def place_call(phone_number: str, model: str, voice: str, extra_instructions: st
         with st.spinner(f"A chamar {phone_number}..."):
             asyncio.run(hang_up_calls_for_number(phone_number))
             dispatch = asyncio.run(
-                dispatch_call(phone_number, model, voice, extra_instructions)
+                dispatch_call(phone_number, model, voice, extra_instructions, elder_id)
             )
         st.success(f"Chamada iniciada. Sala: {dispatch.room}")
     except Exception as e:
@@ -163,10 +166,10 @@ extra_instructions = st.text_area(
 )
 
 cols = st.columns(len(PRESETS))
-for col, (name, number) in zip(cols, PRESETS):
+for col, (name, number, elder_id) in zip(cols, PRESETS):
     with col:
         if st.button(f"📞 {name}", use_container_width=True):
-            place_call(number, selected_model, selected_voice, extra_instructions)
+            place_call(number, selected_model, selected_voice, extra_instructions, elder_id)
 
 st.divider()
 
