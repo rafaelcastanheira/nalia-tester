@@ -127,7 +127,7 @@ async def dispatch_call(
                         "model": model,
                         "voice": voice,
                         "extra_instructions": extra_instructions,
-                        "elder_id": elder_id,
+                        "elder_id": elder_id if elder_id else None,
                     }
                 ),
             )
