@@ -59,6 +59,7 @@ PRESETS = [
     ("Luka", "+351964192119", "9f849f74-443b-4bf7-b958-402ac6802b9a"),
     ("Dani", "+351932587940", "99ffed4a-ba02-4e76-aa93-61ff23948c36"),
     ("Francisca", "+351968184897", "a0ebdd1c-5316-4b73-9af8-1056a44b81c3"),
+    ("Torres", "+351968184897", "9d79e3bb-4402-4fcf-96a8-4269a65b78d2"),
 ]
 
 # "provider:model" strings understood by the agent's _build_llm helper.
