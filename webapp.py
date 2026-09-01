@@ -62,6 +62,10 @@ PRESETS = [
     ("Torres", "+351932435108", "9d79e3bb-4402-4fcf-96a8-4269a65b78d2"),
 ]
 
+CLIENTES = [
+    ("Zenóbia", "+351967872718", "6a779aed-0295-4918-b358-bce50f954bbc"),
+]
+
 # "provider:model" strings understood by the agent's _build_llm helper.
 MODEL_OPTIONS = [
     "google:gemini-3.1-flash-lite",
@@ -167,11 +171,28 @@ extra_instructions = st.text_area(
     placeholder="Instruções adicionais para o agente...",
 )
 
-cols = st.columns(len(PRESETS))
-for col, (name, number, elder_id) in zip(cols, PRESETS):
-    with col:
-        if st.button(f"📞 {name}", use_container_width=True):
-            place_call(number, selected_model, selected_voice, extra_instructions, elder_id)
+def contact_buttons(contacts, key_prefix: str) -> None:
+    if not contacts:
+        st.caption("Sem contactos configurados.")
+        return
+    cols = st.columns(len(contacts))
+    for col, (name, number, elder_id) in zip(cols, contacts):
+        with col:
+            if st.button(
+                f"📞 {name}",
+                use_container_width=True,
+                key=f"{key_prefix}-{number}",
+            ):
+                place_call(
+                    number, selected_model, selected_voice, extra_instructions, elder_id
+                )
+
+
+st.subheader("Testers")
+contact_buttons(PRESETS, "tester")
+
+st.subheader("Clientes")
+contact_buttons(CLIENTES, "cliente")
 
 st.divider()
 
