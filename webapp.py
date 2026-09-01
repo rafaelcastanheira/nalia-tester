@@ -63,7 +63,7 @@ PRESETS = [
 ]
 
 CLIENTES = [
-    ("Zenóbia", "+351967872718", "6a779aed-0295-4918-b358-bce50f954bbc"),
+    ("Zenóbia", "+351960314544", "6a779aed-0295-4918-b358-bce50f954bbc"),
 ]
 
 # "provider:model" strings understood by the agent's _build_llm helper.
