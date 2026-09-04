@@ -64,8 +64,8 @@ PRESETS = [
 
 CLIENTES = [
     ("Zenóbia", "+351960314544", "6a779aed-0295-4918-b358-bce50f954bbc"),
-    ("Ilda", "+351967872718", "293ee992-87e0-4d4c-adcc-d2f69a1a0551"),
-    ("Jim", "+351966899810", "629fef73-e58b-417d-8bee-7c91d34dd731"),
+    ("Ilda", "+351934133531", "293ee992-87e0-4d4c-adcc-d2f69a1a0551"),
+    ("Jim", "+351967872718", "629fef73-e58b-417d-8bee-7c91d34dd731"),
 ]
 
 # "provider:model" strings understood by the agent's _build_llm helper.
