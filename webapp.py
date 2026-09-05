@@ -119,7 +119,12 @@ async def hang_up_calls_for_number(phone_number: str) -> int:
 
 
 async def dispatch_call(
-    phone_number: str, model: str, voice: str, extra_instructions: str, elder_id: str
+    phone_number: str,
+    model: str,
+    voice: str,
+    extra_instructions: str,
+    elder_id: str,
+    test_name: str,
 ) -> api.AgentDispatch:
     # Suffix with a unique id so repeated calls to the same number never
     # reuse a room a previous (possibly still-lingering) call was using.
@@ -136,6 +141,7 @@ async def dispatch_call(
                         "voice": voice,
                         "extra_instructions": extra_instructions,
                         "elder_id": elder_id if elder_id else None,
+                        "test_name": test_name if test_name else None,
                     }
                 ),
             )
@@ -143,9 +149,15 @@ async def dispatch_call(
 
 
 def place_call(
-    phone_number: str, model: str, voice: str, extra_instructions: str, elder_id: str = ""
+    phone_number: str,
+    model: str,
+    voice: str,
+    extra_instructions: str,
+    elder_id: str = "",
+    test_name: str = "",
 ) -> None:
     phone_number = re.sub(r"\s+", "", phone_number)
+    test_name = test_name.strip()
     if not PHONE_RE.match(phone_number):
         st.error("Use o formato internacional E.164, por exemplo +351912345678.")
         return
@@ -153,7 +165,14 @@ def place_call(
         with st.spinner(f"A chamar {phone_number}..."):
             asyncio.run(hang_up_calls_for_number(phone_number))
             dispatch = asyncio.run(
-                dispatch_call(phone_number, model, voice, extra_instructions, elder_id)
+                dispatch_call(
+                    phone_number,
+                    model,
+                    voice,
+                    extra_instructions,
+                    elder_id,
+                    test_name,
+                )
             )
         st.success(f"Chamada iniciada. Sala: {dispatch.room}")
     except Exception as e:
@@ -198,12 +217,23 @@ contact_buttons(CLIENTES, "cliente")
 
 st.divider()
 
-phone_number = st.text_input("Novo número", placeholder="+351912345678")
+number_col, name_col = st.columns([2, 1])
+with number_col:
+    phone_number = st.text_input("Novo número", placeholder="+351912345678")
+with name_col:
+    new_contact_name = st.text_input("Nome (opcional)", placeholder="Nome")
+
 if st.button("Ligar", type="primary"):
     if not phone_number:
         st.error("Introduza um número de telefone.")
     else:
-        place_call(phone_number, selected_model, selected_voice, extra_instructions)
+        place_call(
+            phone_number,
+            selected_model,
+            selected_voice,
+            extra_instructions,
+            test_name=new_contact_name,
+        )
 
 st.divider()
 if st.button("🛑 Terminar chamadas ativas"):
