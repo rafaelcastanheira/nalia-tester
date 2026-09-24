@@ -6,7 +6,6 @@ import uuid
 from pathlib import Path
 
 import streamlit as st
-import streamlit_authenticator as stauth
 from dotenv import load_dotenv
 from livekit import api
 
@@ -22,34 +21,24 @@ for key in ("LIVEKIT_URL", "LIVEKIT_API_KEY", "LIVEKIT_API_SECRET"):
 
 st.set_page_config(page_title="Nalia Tester", page_icon="📞")
 
-# Authentication. Credentials live in st.secrets (see
-# .streamlit/secrets.toml.example) rather than a committed file, so password
-# hashes never end up in git.
-auth_cfg = st.secrets["auth"]
-credentials = {
-    "usernames": {
-        username: dict(user)
-        for username, user in auth_cfg["credentials"]["usernames"].items()
-    }
-}
-authenticator = stauth.Authenticate(
-    credentials,
-    auth_cfg["cookie_name"],
-    auth_cfg["cookie_key"],
-    auth_cfg["cookie_expiry_days"],
-)
-
-authenticator.login()
-
-if st.session_state.get("authentication_status") is False:
-    st.error("Email/password inválidos.")
-    st.stop()
-if st.session_state.get("authentication_status") is None:
+# Authentication via Streamlit's native OIDC login (Google). The OAuth client
+# config lives in the [auth] section of st.secrets and the list of emails
+# allowed in lives in [access] (see .streamlit/secrets.toml.example). The
+# session cookie is set by Streamlit's own server, so it survives page
+# refreshes on Community Cloud.
+if not st.user.is_logged_in:
     st.info("Faz login para continuares.")
+    st.button("Login com Google", on_click=st.login)
     st.stop()
 
-authenticator.logout("Logout", "sidebar")
-st.sidebar.success(f"Logado como: {st.session_state.get('name')}")
+allowed_emails = {email.lower() for email in st.secrets["access"]["allowed_emails"]}
+if (st.user.email or "").lower() not in allowed_emails:
+    st.error(f"A conta {st.user.email} não tem acesso.")
+    st.button("Logout", on_click=st.logout)
+    st.stop()
+
+st.sidebar.button("Logout", on_click=st.logout)
+st.sidebar.success(f"Logado como: {st.user.name or st.user.email}")
 
 AGENT_NAME = "zelai"
 PHONE_RE = re.compile(r"^\+[1-9]\d{6,14}$")  # E.164
