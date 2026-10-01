@@ -133,6 +133,9 @@ async def dispatch_call(
                         "extra_instructions": extra_instructions,
                         "elder_id": elder_id if elder_id else None,
                         "test_name": test_name if test_name else None,
+                        # Every call from this app is a test, kept out of real
+                        # data via call_jobs.is_test.
+                        "is_test": True,
                     }
                 ),
             )
