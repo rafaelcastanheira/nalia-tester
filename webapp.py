@@ -57,6 +57,7 @@ CLIENTES = [
     ("Jim", "+351966899810", "629fef73-e58b-417d-8bee-7c91d34dd731"),
     ("Graça", "+351965091755", "0039ff7f-88f7-4960-8a4c-755e27e0ddff"),
     ("João", "+351962683457", "eede7ff8-f352-4e10-bc8a-99dd2a301151"),
+    ("Ermelinda", "+351963223837", "1911eb52-4ec4-4ebb-b764-ad051ce73e32"),
 ]
 
 # "provider:model" strings understood by the agent's _build_llm helper.
